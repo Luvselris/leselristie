@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Admin ♡ leselristie</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Mitr:wght@300;400;500;600&family=Quicksand:wght@500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
+  <style>
+    :root {
+      --bg-base: #fdf8fa;
+      --bg-blush: #faeef3;
+      --bg-lavender: #f3effa;
+      --surface: rgba(255, 255, 255, 0.96);
+      --surface-soft: #fff9fb;
+      --border-soft: #f0dce5;
+      --accent-main: #d88ca8;
+      --accent-deep: #9e5b75;
+      --accent-glow: rgba(216, 140, 168, 0.22);
+      --text-main: #4a3b42;
+      --text-muted: #8a757e;
+      --shadow-dreamy: 0 12px 28px rgba(158, 91, 117, 0.12);
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Quicksand', 'Mitr', sans-serif;
+    }
+
+    body {
+      background: radial-gradient(circle at top, #ffffff 0%, var(--bg-base) 45%, var(--bg-blush) 80%, var(--bg-lavender) 100%);
+      color: var(--text-main);
+      min-height: 100vh;
+      padding: 20px 14px 70px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 500px;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1.5px solid #ffffff;
+      border-radius: 26px;
+      padding: 20px;
+      box-shadow: var(--shadow-dreamy);
+      margin-bottom: 16px;
+    }
+
+    .title {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--accent-deep);
+      text-align: center;
+      margin-bottom: 14px;
+    }
+
+    .field-group {
+      margin-bottom: 12px;
+    }
+
+    .field-label {
+      display: block;
+      font-size: 12.5px;
+      font-weight: 600;
+      color: var(--text-main);
+      margin-bottom: 5px;
+    }
+
+    .input-box, .textarea-box {
+      width: 100%;
+      padding: 10px 14px;
+      border-radius: 15px;
+      border: 1.5px solid var(--border-soft);
+      background: #ffffff;
+      color: var(--text-main);
+      font-size: 13px;
+      outline: none;
+    }
+
+    .input-box:focus, .textarea-box:focus {
+      border-color: var(--accent-main);
+    }
+
+    .textarea-box {
+      min-height: 76px;
+      resize: vertical;
+    }
+
+    .btn {
+      width: 100%;
+      padding: 11px 14px;
+      border-radius: 18px;
+      border: none;
+      background: linear-gradient(135deg, var(--accent-main), var(--accent-deep));
+      color: #ffffff;
+      font-size: 13.5px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 5px 14px var(--accent-glow);
+      margin-top: 6px;
+    }
+
+    .btn:active {
+      transform: scale(0.98);
+    }
+
+    .btn-secondary {
+      background: #ffffff;
+      color: var(--accent-deep);
+      border: 1.5px solid var(--border-soft);
+      box-shadow: none;
+    }
+
+    .btn-sm {
+      padding: 6px 10px;
+      border-radius: 11px;
+      border: 1px solid var(--border-soft);
+      background: var(--surface-soft);
+      color: var(--accent-deep);
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .btn-del {
+      padding: 6px 10px;
+      border-radius: 11px;
+      border: 1px solid #f2cad8;
+      background: #fff0f5;
+      color: #9e4766;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .nav-tabs {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 14px;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+
+    .nav-tabs::-webkit-scrollbar {
+      display: none;
+    }
+
+    .tab-btn {
+      flex: 1;
+      white-space: nowrap;
+      padding: 9px 11px;
+      border-radius: 16px;
+      border: 1.5px solid var(--border-soft);
+      background: #ffffff;
+      color: var(--text-main);
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .tab-btn.active {
+      background: linear-gradient(135deg, var(--accent-main), var(--accent-deep));
+      color: #ffffff;
+      border-color: transparent;
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    .list-row-card {
+      background: var(--surface-soft);
+      border: 1.5px solid var(--border-soft);
+      border-radius: 18px;
+      padding: 12px 14px;
+      margin-bottom: 10px;
+    }
+
+    .row-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .point-controls {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 8px;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- หน้าเข้าสู่ระบบแอดมิน -->
+  <div class="card" id="loginCard">
+    <div class="title">Admin ♡ leselristie</div>
+    <div class="field-group">
+      <label class="field-label">ยูสแอดมิน</label>
+      <input type="text" id="loginUser" class="input-box" placeholder="luvselris">
+    </div>
+    <div class="field-group">
+      <label class="field-label">รหัสผ่าน</label>
+      <input type="password" id="loginPass" class="input-box" placeholder="••••••••">
+    </div>
+    <button type="button" class="btn" onclick="handleLogin()">เข้าสู่ระบบแอดมิน ♡</button>
+  </div>
+
+  <!-- หน้าแดชบอร์ดแอดมิน -->
+  <div id="adminDashboard" class="hidden">
+
+    <div class="nav-tabs">
+      <button type="button" class="tab-btn active" onclick="switchTab('points', this)">1. สะสมแต้ม ♡</button>
+      <button type="button" class="tab-btn" onclick="switchTab('rewards', this)">2. สต็อกรางวัล ♡</button>
+      <button type="button" class="tab-btn" onclick="switchTab('shop', this)">3. ตั้งค่าร้าน ♡</button>
+      <button type="button" class="tab-btn" onclick="switchTab('account', this)">4. บัญชี ♡</button>
+    </div>
+
+    <!-- แท็บ 1: เพิ่มยูส/โค้ด และเพิ่มแต้มสะสมให้ลูกค้า -->
+    <div class="tab-content active" id="tab-points">
+      <div class="card">
+        <div class="title">เพิ่มยูส/โค้ด และสะสมแต้มให้ลูกค้า ♡</div>
+
+        <div class="field-group">
+          <label class="field-label">ยูสหรือโค้ดของลูกค้า</label>
+          <input type="text" id="newMemberCode" class="input-box" placeholder="เช่น @minty หรือ CODE01">
+        </div>
+
+        <div class="field-group">
+          <label class="field-label">แต้มเริ่มต้น (0 - 10 แต้ม)</label>
+          <input type="number" id="newMemberPoints" class="input-box" min="0" max="10" value="1">
+        </div>
+
+        <button type="button" class="btn" onclick="saveMemberPoint()">บันทึกยูส/แต้มให้ลูกค้า ♡</button>
+      </div>
+
+      <div class="card">
+        <div class="title">รายชื่อยูส/โค้ดและแต้มสะสมทั้งหมด ♡</div>
+        <div id="adminMembersList">
+          <p style="text-align:center; font-size:12.5px; color:var(--text-muted);">กำลังโหลดข้อมูล... ♡</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- แท็บ 2: เพิ่มสต็อกของรางวัล/ข้อความรางวัล และดูรายการที่แลกแล้ว -->
+    <div class="tab-content" id="tab-rewards">
+      <div class="card">
+        <div class="title">เพิ่มรางวัลและสต็อกของรางวัล ♡</div>
+
+        <div class="field-group">
+          <label class="field-label">ชื่อรางวัล (เช่น แอพพรีเมี่ยม / ของแถม)</label>
+          <input type="text" id="newRewardTitle" class="input-box" placeholder="เช่น Netflix / Canvapro / สติกเกอร์ ♡">
+        </div>
+
+        <div class="field-group">
+          <label class="field-label">รายละเอียดหรือข้อความรางวัลที่จะส่งให้ลูกค้าตอนแลก</label>
+          <textarea id="newRewardDetail" class="textarea-box" placeholder="เช่น ใส่เมล/รหัส หรือข้อความรับสิทธิ์ได้เลยนะคะ ♡"></textarea>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label">จำนวนสต็อกที่มี</label>
+          <input type="number" id="newRewardStock" class="input-box" min="0" value="5">
+        </div>
+
+        <button type="button" class="btn" onclick="addRewardItem()">เพิ่มรางวัลเข้าสต็อก ♡</button>
+      </div>
+
+      <div class="card">
+        <div class="title">รายการรางวัลและสต็อกคงเหลือ ♡</div>
+        <div id="adminRewardsList">
+          <p style="text-align:center; font-size:12.5px; color:var(--text-muted);">กำลังโหลดรางวัล... ♡</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="title">ประวัติการแลกรางวัลของลูกค้า ♡</div>
+        <div id="adminClaimsList">
+          <p style="text-align:center; font-size:12.5px; color:var(--text-muted);">กำลังโหลดประวัติ... ♡</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- แท็บ 3: ตั้งค่าข้อมูลร้านและรูปแต้ม -->
+    <div class="tab-content" id="tab-shop">
+      <div class="card">
+        <div class="title">ตั้งค่าข้อมูลร้าน leselristie ♡</div>
+
+        <div class="field-group">
+          <label class="field-label">ชื่อร้าน</label>
+          <input type="text" id="cfgShopName" class="input-box" value="leselristie">
+        </div>
+
+        <div class="field-group">
+          <label class="field-label">ไบโอร้าน</label>
+          <textarea id="cfgShopBio" class="textarea-box"></textarea>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label">ลิงก์รูปแบนเนอร์</label>
+          <input type="text" id="cfgBannerUrl" class="input-box" value="https://files.catbox.moe/gdu983.gif">
+        </div>
+
+        <div class="field-group">
+          <label class="field-label">ลิงก์รูปโปรไฟล์</label>
+          <input type="text" id="cfgProfileUrl" class="input-box" value="https://files.catbox.moe/opixyb.jpeg">
+        </div>
+
+        <div class="field-group">
+          <label class="field-label">ลิงก์รูปแต้มสะสม</label>
+          <input type="text" id="cfgStampUrl" class="input-box" value="https://files.catbox.moe/welq28.jpeg">
+        </div>
+
+        <div class="field-group">
+          <label class="field-label">ข้อความขอบคุณด้านล่างสุด</label>
+          <input type="text" id="cfgFooterText" class="input-box" value="ขอบคุณที่มาอุดหนุนกันนะคะ ♡">
+        </div>
+
+        <button type="button" class="btn" onclick="saveShopConfig()">บันทึกการตั้งค่าร้าน ♡</button>
+      </div>
+    </div>
+
+    <!-- แท็บ 4: ตั้งค่าบัญชีแอดมิน -->
+    <div class="tab-content" id="tab-account">
+      <div class="card">
+        <div class="title">ตั้งค่ายูสและรหัสผ่านแอดมิน ♡</div>
+
+        <div class="field-group">
+          <label class="field-label">ยูสแอดมิน</label>
+          <input type="text" id="editAdminUser" class="input-box">
+        </div>
+
+        <div class="field-group">
+          <label class="field-label">รหัสผ่านใหม่ (เว้นว่างได้หากไม่เปลี่ยน)</label>
+          <input type="password" id="editAdminPass" class="input-box" placeholder="รหัสผ่านใหม่">
+        </div>
+
+        <button type="button" class="btn" onclick="updateAdminCreds()">บันทึกบัญชีแอดมิน ♡</button>
+        <button type="button" class="btn btn-secondary" onclick="logoutAdmin()">ออกจากระบบ ♡</button>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyCpAGDSy1NRgmLV_g7qJrCpwOhU9MrfQyY",
+    authDomain: "benefitie.firebaseapp.com",
+    projectId: "benefitie",
+    storageBucket: "benefitie.firebasestorage.app",
+    messagingSenderId: "270365672215",
+    appId: "1:270365672215:web:230d1491091e26ce83ed52"
+  };
+
+  if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+
+  const DB_SITE = "leselristie_site";
+  const DB_MEMBERS = "leselristie_members";
+  const DB_REWARDS = "leselristie_rewards";
+  const DB_CLAIMS = "leselristie_claims";
+
+  const DEFAULT_BANNER = "https://files.catbox.moe/gdu983.gif";
+  const DEFAULT_PROFILE = "https://files.catbox.moe/opixyb.jpeg";
+  const DEFAULT_STAMP_IMG = "https://files.catbox.moe/welq28.jpeg";
+  const DEFAULT_BIO = "sasomtam ♡ luvselris\nสามารถค้นหายูสหรือกรอกโค้ดที่เค้าส่งให้ได้เลยนะคะ";
+  const DEFAULT_FOOTER = "ขอบคุณที่มาอุดหนุนกันนะคะ ♡";
+
+  let adminUsername = "luvselris";
+  let adminPassword = "@punpunz9";
+
+  db.collection(DB_SITE).doc("admin").onSnapshot(doc => {
+    if (doc.exists) {
+      const d = doc.data();
+      if (d.username) adminUsername = d.username;
+      if (d.password) adminPassword = d.password;
+    }
+  });
+
+  function handleLogin() {
+    const u = document.getElementById('loginUser').value.trim();
+    const p = document.getElementById('loginPass').value.trim();
+
+    if (u === adminUsername && p === adminPassword) {
+      document.getElementById('loginCard').classList.add('hidden');
+      document.getElementById('adminDashboard').classList.remove('hidden');
+      initDashboard();
+    } else {
+      alert('ยูสแอดมินหรือรหัสผ่านไม่ถูกต้องค่ะ ♡');
+    }
+  }
+
+  function logoutAdmin() {
+    document.getElementById('adminDashboard').classList.add('hidden');
+    document.getElementById('loginCard').classList.remove('hidden');
+    document.getElementById('loginPass').value = '';
+  }
+
+  function switchTab(tabName, btnEl) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    btnEl.classList.add('active');
+    document.getElementById(`tab-${tabName}`).classList.add('active');
+  }
+
+  async function initDashboard() {
+    document.getElementById('editAdminUser').value = adminUsername;
+
+    const cfgDoc = await db.collection(DB_SITE).doc("config").get();
+    const d = cfgDoc.exists ? cfgDoc.data() : {};
+    document.getElementById('cfgShopName').value = d.shopName || "leselristie";
+    document.getElementById('cfgShopBio').value = d.shopBio || DEFAULT_BIO;
+    document.getElementById('cfgBannerUrl').value = d.bannerImg || DEFAULT_BANNER;
+    document.getElementById('cfgProfileUrl').value = d.profileImg || DEFAULT_PROFILE;
+    document.getElementById('cfgStampUrl').value = d.stampImg || DEFAULT_STAMP_IMG;
+    document.getElementById('cfgFooterText').value = d.footerText || DEFAULT_FOOTER;
+
+    listenMembersAdmin();
+    listenRewardsAdmin();
+    listenClaimsAdmin();
+  }
+
+  async function saveMemberPoint() {
+    const codeRaw = document.getElementById('newMemberCode').value.trim();
+    const ptsRaw = parseInt(document.getElementById('newMemberPoints').value, 10);
+
+    if (!codeRaw) return alert('กรุณากรอกยูสหรือโค้ดของลูกค้าก่อนนะคะ ♡');
+    const points = Math.max(0, Math.min(10, isNaN(ptsRaw) ? 0 : ptsRaw));
+    const docId = codeRaw.toLowerCase();
+
+    await db.collection(DB_MEMBERS).doc(docId).set({
+      code: codeRaw,
+      points: points,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    }, { merge: true });
+
+    document.getElementById('newMemberCode').value = '';
+    document.getElementById('newMemberPoints').value = '1';
+    alert(`บันทึก "${codeRaw}" (${points}/10 แต้ม) เรียบร้อยแล้วค่ะ ♡`);
+  }
+
+  function listenMembersAdmin() {
+    db.collection(DB_MEMBERS).orderBy("updatedAt", "desc").onSnapshot(snap => {
+      const box = document.getElementById('adminMembersList');
+      if (snap.empty) {
+        box.innerHTML = '<p style="text-align:center; font-size:12.5px; color:var(--text-muted);">ยังไม่มีข้อมูลยูสหรือโค้ดในระบบค่ะ ♡</p>';
+        return;
+      }
+
+      let html = '';
+      snap.forEach(doc => {
+        const d = doc.data();
+        const code = d.code || doc.id;
+        const pts = Math.max(0, Math.min(10, parseInt(d.points || 0, 10)));
+
+        html += `
+          <div class="list-row-card">
+            <div class="row-top">
+              <div>
+                <div style="font-weight:700; font-size:14px; color:var(--accent-deep);">${escapeHtml(code)}</div>
+                <div style="font-size:12px; color:var(--text-muted);">สะสมอยู่: <strong>${pts} / 10</strong> แต้ม</div>
+              </div>
+              <button type="button" class="btn-del" onclick="deleteMember('${doc.id}', '${escapeHtml(code)}')">ลบ</button>
+            </div>
+            <div class="point-controls">
+              <button type="button" class="btn-sm" onclick="changeMemberPoints('${doc.id}', ${pts - 1})">-1 แต้ม</button>
+              <button type="button" class="btn-sm" onclick="changeMemberPoints('${doc.id}', ${pts + 1})">+1 แต้ม</button>
+              <button type="button" class="btn-sm" onclick="changeMemberPoints('${doc.id}', 10)">ครบ 10 แต้ม</button>
+              <button type="button" class="btn-sm" onclick="changeMemberPoints('${doc.id}', 0)">รีเซ็ต 0</button>
+            </div>
+          </div>
+        `;
+      });
+      box.innerHTML = html;
+    });
+  }
+
+  async function changeMemberPoints(docId, nextVal) {
+    const clamped = Math.max(0, Math.min(10, parseInt(nextVal || 0, 10)));
+    await db.collection(DB_MEMBERS).doc(docId).set({
+      points: clamped,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    }, { merge: true });
+  }
+
+  async function deleteMember(docId, code) {
+    if (!confirm(`ต้องการลบยูส/โค้ด "${code}" ใช่ไหมคะ? ♡`)) return;
+    await db.collection(DB_MEMBERS).doc(docId).delete();
+  }
+
+  async function addRewardItem() {
+    const title = document.getElementById('newRewardTitle').value.trim();
+    const detail = document.getElementById('newRewardDetail').value.trim();
+    const stockRaw = parseInt(document.getElementById('newRewardStock').value, 10);
+
+    if (!title) return alert('กรุณากรอกชื่อรางวัลก่อนนะคะ ♡');
+    const stock = Math.max(0, isNaN(stockRaw) ? 0 : stockRaw);
+
+    await db.collection(DB_REWARDS).add({
+      title: title,
+      detail: detail,
+      stock: stock,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+
+    document.getElementById('newRewardTitle').value = '';
+    document.getElementById('newRewardDetail').value = '';
+    document.getElementById('newRewardStock').value = '5';
+    alert(`เพิ่มรางวัล "${title}" เรียบร้อยแล้วค่ะ ♡`);
+  }
+
+  function listenRewardsAdmin() {
+    db.collection(DB_REWARDS).orderBy("createdAt", "asc").onSnapshot(snap => {
+      const box = document.getElementById('adminRewardsList');
+      if (snap.empty) {
+        box.innerHTML = '<p style="text-align:center; font-size:12.5px; color:var(--text-muted);">ยังไม่มีรางวัลในระบบค่ะ ♡</p>';
+        return;
+      }
+
+      let html = '';
+      snap.forEach(doc => {
+        const d = doc.data();
+        const stock = Math.max(0, parseInt(d.stock || 0, 10));
+
+        html += `
+          <div class="list-row-card">
+            <div class="row-top">
+              <div style="flex:1;">
+                <div style="font-weight:700; font-size:14px; color:var(--accent-deep);">${escapeHtml(d.title || 'รางวัล')}</div>
+                ${d.detail ? `<div style="font-size:12px; color:var(--text-muted); margin-top:2px; white-space:pre-line;">${escapeHtml(d.detail)}</div>` : ''}
+                <div style="font-size:12px; margin-top:4px;">สต็อกคงเหลือ: <strong>${stock}</strong> ชิ้น</div>
+              </div>
+              <button type="button" class="btn-del" onclick="deleteReward('${doc.id}')">ลบ</button>
+            </div>
+            <div class="point-controls">
+              <button type="button" class="btn-sm" onclick="changeRewardStock('${doc.id}', ${stock - 1})">-1 สต็อก</button>
+              <button type="button" class="btn-sm" onclick="changeRewardStock('${doc.id}', ${stock + 1})">+1 สต็อก</button>
+              <button type="button" class="btn-sm" onclick="changeRewardStock('${doc.id}', ${stock + 5})">+5 สต็อก</button>
+            </div>
+          </div>
+        `;
+      });
+      box.innerHTML = html;
+    });
+  }
+
+  async function changeRewardStock(docId, nextStock) {
+    const val = Math.max(0, parseInt(nextStock || 0, 10));
+    await db.collection(DB_REWARDS).doc(docId).update({ stock: val });
+  }
+
+  async function deleteReward(docId) {
+    if (!confirm('ต้องการลบรางวัลนี้ออกจากระบบใช่ไหมคะ? ♡')) return;
+    await db.collection(DB_REWARDS).doc(docId).delete();
+  }
+
+  function listenClaimsAdmin() {
+    db.collection(DB_CLAIMS).orderBy("claimedAt", "desc").limit(30).onSnapshot(snap => {
+      const box = document.getElementById('adminClaimsList');
+      if (snap.empty) {
+        box.innerHTML = '<p style="text-align:center; font-size:12.5px; color:var(--text-muted);">ยังไม่มีรายการแลกรางวัลค่ะ ♡</p>';
+        return;
+      }
+
+      let html = '';
+      snap.forEach(doc => {
+        const d = doc.data();
+        html += `
+          <div class="list-row-card">
+            <div style="font-weight:700; font-size:13px; color:var(--accent-deep);">ยูส/โค้ด: ${escapeHtml(d.code || '-')}</div>
+            <div style="font-size:12.5px; margin-top:2px;">แลก: <strong>${escapeHtml(d.rewardTitle || '-')}</strong></div>
+          </div>
+        `;
+      });
+      box.innerHTML = html;
+    });
+  }
+
+  async function saveShopConfig() {
+    await db.collection(DB_SITE).doc("config").set({
+      shopName: document.getElementById('cfgShopName').value.trim() || "leselristie",
+      shopBio: document.getElementById('cfgShopBio').value.trim(),
+      bannerImg: document.getElementById('cfgBannerUrl').value.trim() || DEFAULT_BANNER,
+      profileImg: document.getElementById('cfgProfileUrl').value.trim() || DEFAULT_PROFILE,
+      stampImg: document.getElementById('cfgStampUrl').value.trim() || DEFAULT_STAMP_IMG,
+      footerText: document.getElementById('cfgFooterText').value.trim() || DEFAULT_FOOTER,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    }, { merge: true });
+
+    alert('บันทึกการตั้งค่าร้านเรียบร้อยแล้วค่ะ ♡');
+  }
+
+  async function updateAdminCreds() {
+    const newUser = document.getElementById('editAdminUser').value.trim();
+    const newPass = document.getElementById('editAdminPass').value.trim();
+    const payload = {};
+    if (newUser) {
+      payload.username = newUser;
+      adminUsername = newUser;
+    }
+    if (newPass) {
+      payload.password = newPass;
+      adminPassword = newPass;
+    }
+
+    await db.collection(DB_SITE).doc("admin").set(payload, { merge: true });
+    document.getElementById('editAdminPass').value = '';
+    alert('อัปเดตบัญชีแอดมินเรียบร้อยแล้วค่ะ ♡');
+  }
+
+  function escapeHtml(str) {
+    if (!str) return '';
+    return String(str)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
+</script>
+</body>
+</html>
