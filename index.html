@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title id="pageTitle">leselristie ♡</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Mitr:wght@300;400;500;600&family=Quicksand:wght@500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
+  <style>
+    :root {
+      --bg-base: #fdf8fa;
+      --bg-blush: #faeef3;
+      --bg-lavender: #f3effa;
+      --surface: rgba(255, 255, 255, 0.92);
+      --surface-soft: #fff9fb;
+      --border-soft: #f0dce5;
+      --accent-main: #d88ca8;
+      --accent-deep: #9e5b75;
+      --accent-glow: rgba(216, 140, 168, 0.24);
+      --text-main: #4a3b42;
+      --text-muted: #8a757e;
+      --shadow-dreamy: 0 12px 30px rgba(158, 91, 117, 0.12);
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Quicksand', 'Mitr', sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background: radial-gradient(circle at 18% 10%, #ffffff 0%, var(--bg-base) 42%, var(--bg-blush) 76%, var(--bg-lavender) 100%);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      padding: 18px 14px 70px;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    /* ลูกเล่นลอยไปมาแบบฟุ้งๆ */
+    .dreamy-float-layer {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+
+    .dream-orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(26px);
+      opacity: 0.55;
+      animation: orbDrift 14s ease-in-out infinite alternate;
+    }
+
+    .dream-sparkle {
+      position: absolute;
+      bottom: -36px;
+      font-size: 16px;
+      color: var(--accent-deep);
+      opacity: 0;
+      filter: blur(0.35px);
+      animation: sparkleRise 12s linear infinite;
+    }
+
+    @keyframes orbDrift {
+      0% { transform: translate(0, 0) scale(1); }
+      50% { transform: translate(18px, -22px) scale(1.08); }
+      100% { transform: translate(-14px, 16px) scale(0.96); }
+    }
+
+    @keyframes sparkleRise {
+      0% { transform: translateY(0) scale(0.85); opacity: 0; }
+      18% { opacity: 0.65; }
+      82% { opacity: 0.55; }
+      100% { transform: translateY(-112vh) scale(1.15); opacity: 0; }
+    }
+
+    .container {
+      width: 100%;
+      max-width: 440px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .glass-card {
+      background: var(--surface);
+      backdrop-filter: blur(14px);
+      border: 1.5px solid #ffffff;
+      border-radius: 28px;
+      padding: 16px;
+      box-shadow: var(--shadow-dreamy);
+      margin-bottom: 14px;
+    }
+
+    .banner-wrap {
+      width: 100%;
+      height: 146px;
+      border-radius: 20px;
+      overflow: hidden;
+      background: var(--bg-blush);
+      border: 1.5px solid #ffffff;
+    }
+
+    .banner-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .profile-wrap {
+      margin-top: -46px;
+      display: flex;
+      justify-content: center;
+      position: relative;
+      z-index: 2;
+    }
+
+    .profile-wrap img {
+      width: 92px;
+      height: 92px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 3.5px solid #ffffff;
+      box-shadow: 0 8px 20px rgba(158, 91, 117, 0.22);
+      background: #ffffff;
+      display: block;
+    }
+
+    .shop-name {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--accent-deep);
+      text-align: center;
+      margin-top: 10px;
+      letter-spacing: 0.4px;
+    }
+
+    .shop-bio {
+      background: var(--surface-soft);
+      border: 1px solid var(--border-soft);
+      border-radius: 18px;
+      padding: 12px 14px;
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-top: 10px;
+      line-height: 1.75;
+      white-space: pre-line;
+      text-align: center;
+    }
+
+    .card-heading {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--accent-deep);
+      text-align: center;
+      margin-bottom: 12px;
+    }
+
+    .search-row {
+      display: flex;
+      gap: 8px;
+    }
+
+    .lookup-input {
+      flex: 1;
+      padding: 11px 14px;
+      border-radius: 16px;
+      border: 1.5px solid var(--border-soft);
+      background: var(--surface-soft);
+      color: var(--text-main);
+      font-size: 13.5px;
+      outline: none;
+      transition: border-color 0.2s, background 0.2s;
+    }
+
+    .lookup-input:focus {
+      border-color: var(--accent-main);
+      background: #ffffff;
+    }
+
+    .btn-primary {
+      padding: 11px 18px;
+      border-radius: 16px;
+      border: none;
+      background: linear-gradient(135deg, var(--accent-main), var(--accent-deep));
+      color: #ffffff;
+      font-size: 13.5px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 6px 16px var(--accent-glow);
+      transition: transform 0.15s;
+      white-space: nowrap;
+    }
+
+    .btn-primary:active {
+      transform: scale(0.97);
+    }
+
+    .btn-primary:disabled {
+      opacity: 0.65;
+      cursor: not-allowed;
+    }
+
+    .feedback-msg {
+      margin-top: 10px;
+      text-align: center;
+      font-size: 12.5px;
+      font-weight: 600;
+      color: var(--accent-deep);
+      min-height: 18px;
+    }
+
+    .member-badge-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--surface-soft);
+      border: 1px solid var(--border-soft);
+      border-radius: 16px;
+      padding: 10px 14px;
+      margin-bottom: 12px;
+      font-size: 12.5px;
+    }
+
+    .member-code-tag {
+      font-weight: 700;
+      color: var(--accent-deep);
+    }
+
+    .member-point-tag {
+      font-weight: 700;
+      color: var(--text-main);
+      background: #ffffff;
+      padding: 4px 10px;
+      border-radius: 12px;
+      border: 1px solid var(--border-soft);
+    }
+
+    /* ตารางสะสมแต้ม 10 แต้ม: บน 5 ล่าง 5 */
+    .stamp-grid-10 {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 8px;
+    }
+
+    .stamp-slot {
+      aspect-ratio: 1 / 1;
+      border-radius: 16px;
+      border: 1.5px dashed var(--border-soft);
+      background: var(--surface-soft);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 4px;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.15s, border-color 0.2s;
+    }
+
+    .stamp-slot.earned {
+      border: 1.5px solid var(--accent-main);
+      background: #ffffff;
+      box-shadow: 0 4px 12px var(--accent-glow);
+    }
+
+    .stamp-slot.earned img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 12px;
+      display: block;
+    }
+
+    .no-tam-text {
+      font-size: 10.5px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-align: center;
+      line-height: 1.2;
+    }
+
+    .stamp-num-hint {
+      position: absolute;
+      top: 3px;
+      left: 5px;
+      font-size: 9px;
+      color: var(--text-muted);
+      opacity: 0.7;
+    }
+
+    /* ส่วนแลกรางวัล */
+    .reward-card-item {
+      background: var(--surface-soft);
+      border: 1.5px solid var(--border-soft);
+      border-radius: 18px;
+      padding: 12px 14px;
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .reward-name {
+      font-size: 13.5px;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .reward-note {
+      font-size: 11.5px;
+      color: var(--text-muted);
+      margin-top: 2px;
+      white-space: pre-line;
+    }
+
+    .reward-stock {
+      font-size: 11.5px;
+      font-weight: 600;
+      color: var(--accent-deep);
+      margin-top: 4px;
+    }
+
+    .btn-redeem {
+      padding: 9px 14px;
+      border-radius: 14px;
+      border: none;
+      background: linear-gradient(135deg, var(--accent-main), var(--accent-deep));
+      color: #ffffff;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      flex-shrink: 0;
+      box-shadow: 0 4px 12px var(--accent-glow);
+    }
+
+    .btn-redeem:disabled {
+      background: #e6dce1;
+      color: var(--text-muted);
+      box-shadow: none;
+      cursor: not-allowed;
+    }
+
+    .redeemed-box {
+      margin-top: 12px;
+      background: #ffffff;
+      border: 1.5px solid var(--accent-main);
+      border-radius: 16px;
+      padding: 12px 14px;
+      font-size: 12.5px;
+      color: var(--text-main);
+      display: none;
+    }
+
+    .footer-small {
+      text-align: center;
+      font-size: 11.5px;
+      color: var(--text-muted);
+      margin-top: 14px;
+      font-weight: 500;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ลูกเล่นลอยไปมาแบบฟุ้งๆ -->
+  <div class="dreamy-float-layer" id="dreamyFloatLayer">
+    <div class="dream-orb" style="width:220px; height:220px; top:6%; left:-50px; background:#f7d9e6;"></div>
+    <div class="dream-orb" style="width:250px; height:250px; top:42%; right:-70px; background:#e7def7; animation-delay:-4s;"></div>
+    <div class="dream-orb" style="width:200px; height:200px; bottom:8%; left:10%; background:#fce4ec; animation-delay:-8s;"></div>
+  </div>
+
+  <div class="container">
+
+    <!-- 1. การ์ดโปรไฟล์ & ไบโอ -->
+    <div class="glass-card">
+      <div class="banner-wrap">
+        <img id="bannerImg" src="https://files.catbox.moe/gdu983.gif" alt="Banner">
+      </div>
+      <div class="profile-wrap">
+        <img id="profileImg" src="https://files.catbox.moe/opixyb.jpeg" alt="Profile">
+      </div>
+      <h1 class="shop-name" id="shopNameText">leselristie</h1>
+      <div class="shop-bio" id="shopBioText">sasomtam ♡ luvselris
+สามารถค้นหายูสหรือกรอกโค้ดที่เค้าส่งให้ได้เลยนะคะ</div>
+    </div>
+
+    <!-- 2. ค้นหายูสหรือโค้ด -->
+    <div class="glass-card">
+      <div class="card-heading">ค้นหายูสหรือกรอกโค้ดสะสมแต้ม ♡</div>
+      <div class="search-row">
+        <input type="text" id="lookupInput" class="lookup-input" placeholder="กรอกยูสหรือโค้ดของคุณ ♡" onkeydown="if(event.key==='Enter') searchCustomer()">
+        <button type="button" class="btn-primary" id="btnSearch" onclick="searchCustomer()">ค้นหา</button>
+      </div>
+      <div class="feedback-msg" id="lookupFeedback"></div>
+    </div>
+
+    <!-- 3. กล่องสะสมแต้ม 10 แต้ม (บน 5 ล่าง 5) -->
+    <div class="glass-card" id="stampSectionCard">
+      <div class="card-heading">สะสมแต้ม (10 แต้ม) ♡</div>
+
+      <div class="member-badge-row" id="memberInfoBar" style="display:none;">
+        <span class="member-code-tag" id="activeMemberLabel">-</span>
+        <span class="member-point-tag" id="activePointLabel">0 / 10 แต้ม</span>
+      </div>
+
+      <div class="stamp-grid-10" id="stampGrid10"></div>
+
+      <div class="redeemed-box" id="redeemResultBox"></div>
+    </div>
+
+    <!-- 4. กล่องแลกรับรางวัลเมื่อแต้มครบ -->
+    <div class="glass-card" id="rewardsSectionCard">
+      <div class="card-heading">แลกรับรางวัลเมื่อแต้มครบ ♡</div>
+      <div id="rewardsListContainer">
+        <p style="text-align:center; font-size:12.5px; color:var(--text-muted);">กำลังโหลดรายการรางวัล ♡</p>
+      </div>
+    </div>
+
+    <div class="footer-small" id="footerSmallText">ขอบคุณที่มาอุดหนุนกันนะคะ ♡</div>
+
+  </div>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyCpAGDSy1NRgmLV_g7qJrCpwOhU9MrfQyY",
+      authDomain: "benefitie.firebaseapp.com",
+      projectId: "benefitie",
+      storageBucket: "benefitie.firebasestorage.app",
+      messagingSenderId: "270365672215",
+      appId: "1:270365672215:web:230d1491091e26ce83ed52"
+    };
+
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    // แยกคอลเลกชันเฉพาะของร้าน leselristie
+    const DB_SITE = "leselristie_site";
+    const DB_MEMBERS = "leselristie_members";
+    const DB_REWARDS = "leselristie_rewards";
+    const DB_CLAIMS = "leselristie_claims";
+
+    const DEFAULT_BANNER = "https://files.catbox.moe/gdu983.gif";
+    const DEFAULT_PROFILE = "https://files.catbox.moe/opixyb.jpeg";
+    const DEFAULT_STAMP_IMG = "https://files.catbox.moe/welq28.jpeg";
+    const DEFAULT_BIO = "sasomtam ♡ luvselris\nสามารถค้นหายูสหรือกรอกโค้ดที่เค้าส่งให้ได้เลยนะคะ";
+    const DEFAULT_FOOTER = "ขอบคุณที่มาอุดหนุนกันนะคะ ♡";
+
+    let stampIconUrl = DEFAULT_STAMP_IMG;
+    let currentMember = null;
+    let currentRewards = [];
+
+    // สร้างลูกเล่นฟุ้งๆ ลอยขึ้นช้าๆ
+    (function initFloatingSparkles() {
+      const layer = document.getElementById('dreamyFloatLayer');
+      const glyphs = ["♡", "✦", "˚", "✧"];
+      setInterval(() => {
+        const span = document.createElement('span');
+        span.className = 'dream-sparkle';
+        span.textContent = glyphs[Math.floor(Math.random() * glyphs.length)];
+        span.style.left = (5 + Math.random() * 90) + 'vw';
+        span.style.fontSize = (13 + Math.random() * 8) + 'px';
+        span.style.animationDuration = (10 + Math.random() * 6) + 's';
+        layer.appendChild(span);
+        setTimeout(() => span.remove(), 16500);
+      }, 1500);
+    })();
+
+    // เรนเดอร์ตารางสะสมแต้ม 10 ช่อง (บน 5 ล่าง 5)
+    function renderStampBoard(points) {
+      const safePoints = Math.max(0, Math.min(10, parseInt(points || 0, 10)));
+      const grid = document.getElementById('stampGrid10');
+      let html = '';
+
+      for (let i = 1; i <= 10; i++) {
+        const hasPoint = i <= safePoints;
+        if (hasPoint) {
+          html += `
+            <div class="stamp-slot earned" title="แต้มที่ ${i}">
+              <img src="${escapeHtml(stampIconUrl)}" alt="แต้มที่ ${i}">
+            </div>
+          `;
+        } else {
+          html += `
+            <div class="stamp-slot" title="ช่องที่ ${i}">
+              <span class="stamp-num-hint">${i}</span>
+              <span class="no-tam-text">no tam ♡</span>
+            </div>
+          `;
+        }
+      }
+
+      grid.innerHTML = html;
+
+      const bar = document.getElementById('memberInfoBar');
+      if (currentMember) {
+        bar.style.display = 'flex';
+        document.getElementById('activeMemberLabel').textContent = `ยูส/โค้ด: ${currentMember.code}`;
+        document.getElementById('activePointLabel').textContent = `${safePoints} / 10 แต้ม`;
+      } else {
+        bar.style.display = 'none';
+      }
+
+      renderRewardsList();
+    }
+
+    renderStampBoard(0);
+
+    // ฟังค่าตั้งค่าร้าน
+    db.collection(DB_SITE).doc("config").onSnapshot(doc => {
+      if (!doc.exists) return;
+      const d = doc.data();
+      if (d.shopName) {
+        document.getElementById('shopNameText').textContent = d.shopName;
+        document.getElementById('pageTitle').textContent = d.shopName + " ♡";
+      }
+      if (d.shopBio !== undefined && d.shopBio !== "") {
+        document.getElementById('shopBioText').textContent = d.shopBio;
+      }
+      if (d.bannerImg) document.getElementById('bannerImg').src = d.bannerImg;
+      if (d.profileImg) document.getElementById('profileImg').src = d.profileImg;
+      if (d.stampImg) {
+        stampIconUrl = d.stampImg;
+        renderStampBoard(currentMember ? currentMember.points : 0);
+      }
+      if (d.footerText) {
+        document.getElementById('footerSmallText').textContent = d.footerText;
+      }
+    });
+
+    // ค้นหายูสหรือโค้ด
+    async function searchCustomer() {
+      const rawKey = document.getElementById('lookupInput').value.trim();
+      const feedback = document.getElementById('lookupFeedback');
+      const redeemBox = document.getElementById('redeemResultBox');
+      redeemBox.style.display = 'none';
+      redeemBox.innerHTML = '';
+
+      if (!rawKey) {
+        currentMember = null;
+        renderStampBoard(0);
+        feedback.textContent = 'กรุณากรอกยูสหรือโค้ดก่อนนะคะ ♡';
+        return;
+      }
+
+      const btn = document.getElementById('btnSearch');
+      btn.disabled = true;
+      feedback.textContent = 'กำลังค้นหาข้อมูล... ♡';
+
+      try {
+        const normalized = rawKey.toLowerCase();
+        const docIdMatch = await db.collection(DB_MEMBERS).doc(normalized).get();
+        let foundDoc = null;
+
+        if (docIdMatch.exists) {
+          foundDoc = docIdMatch;
+        } else {
+          const snap = await db.collection(DB_MEMBERS).get();
+          snap.forEach(d => {
+            const data = d.data();
+            const codeVal = String(data.code || d.id || '').trim().toLowerCase();
+            if (codeVal === normalized) {
+              foundDoc = d;
+            }
+          });
+        }
+
+        if (!foundDoc) {
+          currentMember = null;
+          renderStampBoard(0);
+          feedback.textContent = 'ไม่มีในระบบค่ะ ลองใหม่อีกรอบนะคะ ♡';
+          return;
+        }
+
+        const data = foundDoc.data();
+        currentMember = {
+          id: foundDoc.id,
+          code: data.code || foundDoc.id,
+          points: Math.max(0, Math.min(10, parseInt(data.points || 0, 10)))
+        };
+
+        feedback.textContent = `พบข้อมูลของ "${currentMember.code}" แล้วค่ะ ♡`;
+        renderStampBoard(currentMember.points);
+      } catch (err) {
+        feedback.textContent = 'เกิดข้อผิดพลาดในการค้นหา: ' + err.message;
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    // ฟังรายการรางวัลและสต็อกแบบเรียลไทม์
+    db.collection(DB_REWARDS).orderBy("createdAt", "asc").onSnapshot(snap => {
+      currentRewards = [];
+      snap.forEach(doc => {
+        const d = doc.data();
+        currentRewards.push({
+          id: doc.id,
+          title: d.title || "รางวัล",
+          detail: d.detail || "",
+          stock: Math.max(0, parseInt(d.stock || 0, 10))
+        });
+      });
+      renderRewardsList();
+    });
+
+    function renderRewardsList() {
+      const container = document.getElementById('rewardsListContainer');
+
+      if (currentRewards.length === 0) {
+        container.innerHTML = '<p style="text-align:center; font-size:12.5px; color:var(--text-muted);">ยังไม่มีรายการรางวัลในระบบค่ะ ♡</p>';
+        return;
+      }
+
+      const memberPoints = currentMember ? currentMember.points : 0;
+      const canRedeemByPoints = Boolean(currentMember) && memberPoints >= 10;
+
+      let html = '';
+      currentRewards.forEach(rw => {
+        const hasStock = rw.stock > 0;
+        const enabled = canRedeemByPoints && hasStock;
+        let btnLabel = 'แลกรางวัล';
+        if (!currentMember) btnLabel = 'ค้นหายูสก่อน';
+        else if (memberPoints < 10) btnLabel = `ขาดอีก ${10 - memberPoints} แต้ม`;
+        else if (!hasStock) btnLabel = 'สินค้าหมด';
+
+        html += `
+          <div class="reward-card-item">
+            <div style="flex:1;">
+              <div class="reward-name">${escapeHtml(rw.title)}</div>
+              ${rw.detail ? `<div class="reward-note">${escapeHtml(rw.detail)}</div>` : ''}
+              <div class="reward-stock">คงเหลือ: ${rw.stock} ชิ้น</div>
+            </div>
+            <button type="button" class="btn-redeem" ${enabled ? '' : 'disabled'} onclick="redeemReward('${rw.id}')">${escapeHtml(btnLabel)}</button>
+          </div>
+        `;
+      });
+
+      container.innerHTML = html;
+    }
+
+    async function redeemReward(rewardId) {
+      if (!currentMember || currentMember.points < 10) {
+        alert('ต้องสะสมแต้มครบ 10 แต้มก่อนถึงจะแลกรางวัลได้นะคะ ♡');
+        return;
+      }
+
+      const reward = currentRewards.find(r => r.id === rewardId);
+      if (!reward || reward.stock <= 0) {
+        alert('รางวัลนี้สต็อกหมดแล้วค่ะ ♡');
+        return;
+      }
+
+      if (!confirm(`ยืนยันใช้ 10 แต้มเพื่อแลก "${reward.title}" ใช่ไหมคะ? ♡`)) return;
+
+      const memberRef = db.collection(DB_MEMBERS).doc(currentMember.id);
+      const rewardRef = db.collection(DB_REWARDS).doc(reward.id);
+
+      try {
+        await db.runTransaction(async (tx) => {
+          const mSnap = await tx.get(memberRef);
+          const rSnap = await tx.get(rewardRef);
+          if (!mSnap.exists || !rSnap.exists) throw new Error("ไม่พบข้อมูลในระบบ");
+
+          const mPoints = parseInt(mSnap.data().points || 0, 10);
+          const rStock = parseInt(rSnap.data().stock || 0, 10);
+
+          if (mPoints < 10) throw new Error("แต้มไม่ครบ 10 แต้มค่ะ");
+          if (rStock <= 0) throw new Error("สต็อกของรางวัลหมดแล้วค่ะ");
+
+          tx.update(memberRef, {
+            points: mPoints - 10,
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+          });
+
+          tx.update(rewardRef, {
+            stock: rStock - 1,
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+          });
+
+          const claimRef = db.collection(DB_CLAIMS).doc();
+          tx.set(claimRef, {
+            memberId: currentMember.id,
+            code: currentMember.code,
+            rewardId: reward.id,
+            rewardTitle: reward.title,
+            rewardDetail: reward.detail || "",
+            claimedAt: firebase.firestore.FieldValue.serverTimestamp()
+          });
+        });
+
+        currentMember.points = Math.max(0, currentMember.points - 10);
+        renderStampBoard(currentMember.points);
+
+        const redeemBox = document.getElementById('redeemResultBox');
+        redeemBox.style.display = 'block';
+        redeemBox.innerHTML = `
+          <div style="font-weight:700; color:var(--accent-deep); margin-bottom:4px;">แลกรางวัลสำเร็จแล้วค่ะ ♡</div>
+          <div>รางวัลที่แลก: <strong>${escapeHtml(reward.title)}</strong></div>
+          ${reward.detail ? `<div style="margin-top:4px; white-space:pre-line; color:var(--text-muted);">${escapeHtml(reward.detail)}</div>` : ''}
+        `;
+      } catch (err) {
+        alert('ไม่สามารถแลกรางวัลได้: ' + err.message);
+      }
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+  </script>
+</body>
+</html>
